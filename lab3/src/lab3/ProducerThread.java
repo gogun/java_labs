@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class ProducerThread implements Runnable {
 
-    private AtomicInteger index = new AtomicInteger(0);
+    private int index = 0;
     private BlockingQueue<Student> blockingQueue;
 
     ProducerThread(BlockingQueue<Student> blockingQueue) {
@@ -24,7 +24,7 @@ public class ProducerThread implements Runnable {
     private void generateStudents() throws InterruptedException {
         while (Main.i.get() != 100){
             Student student = new Student();
-            student.setNumber(index.getAndIncrement());
+            student.setNumber(index++);
             System.out.println("студент " + student.getNumber() + "  с лабами по " + student.getSubjectName() + " заходит в кабинет");
             blockingQueue.put(student);
             Main.i.incrementAndGet();
