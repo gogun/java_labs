@@ -22,12 +22,12 @@ public class ProducerThread implements Runnable {
     }
 
     private void generateStudents() throws InterruptedException {
-        while (true) {
+        while (Main.i.get() != 100){
             Student student = new Student();
-            student.number = index.getAndIncrement();
-            System.out.println("студент " + student.number + "  с лабами по " + student.subjectName + " заходит в кабинет");
+            student.setNumber(index.getAndIncrement());
+            System.out.println("студент " + student.getNumber() + "  с лабами по " + student.getSubjectName() + " заходит в кабинет");
             blockingQueue.put(student);
-
+            Main.i.incrementAndGet();
         }
     }
 }

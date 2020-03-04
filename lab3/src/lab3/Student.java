@@ -1,9 +1,34 @@
 package lab3;
 
 public class Student {
-    int labCount;
-    String subjectName;
-    int number;
+    private int labCount;
+    private String subjectName;
+
+    public int getLabCount() {
+        return labCount;
+    }
+
+    public void setLabCount(int labCount) {
+        this.labCount = labCount;
+    }
+
+    public void setSubjectName(String subjectName) {
+        this.subjectName = subjectName;
+    }
+
+    public void setNumber(int number) {
+        this.number = number;
+    }
+
+    public String getSubjectName() {
+        return subjectName;
+    }
+
+    public int getNumber() {
+        return number;
+    }
+
+    private int number;
 
     Student() {
         this.labCount = Main.labs[(int) (Math.random() * 3)];

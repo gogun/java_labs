@@ -15,25 +15,24 @@ public class ConsumerThread implements Runnable{
     @Override
     public void run() {
         try {
-            handleStudent();
+            while (true) {
+                if (Main.i.get() == 100 && blockingQueue.isEmpty())
+                    return;
+                Thread.sleep(1000);
+                Student student = blockingQueue.peek();
+                if (student != null && student.getSubjectName().equals(subject)) {
+                    System.out.println("студент " + student.getNumber() + " с лабами по " + subject + " начинает сдавать лабы");
+                    int labs = blockingQueue.take().getLabCount();
+                    while (labs != 0) {
+                        labs -= 5;
+                        System.out.println(subject + " студент "+ student.getNumber() +" сдал 5 лаб, осталось " + labs);
+                    }
+                }
+            }
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
 
-    private void handleStudent() throws InterruptedException {
-        while (true) {
-            Student student = blockingQueue.peek();
-            if (student != null && student.subjectName.equals(subject)) {
-                System.out.println("стдент " + student.number + " с лабами по " + subject + " начинает сдавать лабы");
-                int labs = blockingQueue.take().labCount;
-                while (labs != 0) {
-                    labs -= 5;
-                    System.out.println(subject + " студент "+ student.number +" сдал 5 лаб, осталось " + labs);
-                }
-
-            }
-        }
-    }
 
 }
