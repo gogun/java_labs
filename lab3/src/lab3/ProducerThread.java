@@ -1,7 +1,8 @@
 package lab3;
 
+import java.time.Duration;
+import java.time.LocalTime;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class ProducerThread implements Runnable {
 
@@ -25,7 +26,9 @@ public class ProducerThread implements Runnable {
         while (Main.i.get() != 100){
             Student student = new Student();
             student.setNumber(index++);
-            System.out.println("студент " + student.getNumber() + "  с лабами по " + student.getSubjectName() + " заходит в кабинет");
+            System.out.println(Duration.between(Main.startTime, LocalTime.now()).toMinutes() + ":" +
+                    Duration.between(Main.startTime, LocalTime.now()).toSeconds() +
+                    " студент " + student.getNumber() + "  с лабами по " + student.getSubjectName() + " заходит в кабинет");
             blockingQueue.put(student);
             Main.i.incrementAndGet();
         }

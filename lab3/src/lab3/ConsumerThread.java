@@ -1,5 +1,7 @@
 package lab3;
 
+import java.time.Duration;
+import java.time.LocalTime;
 import java.util.concurrent.BlockingQueue;
 
 public class ConsumerThread implements Runnable{
@@ -21,11 +23,15 @@ public class ConsumerThread implements Runnable{
                 Thread.sleep(1000);
                 Student student = blockingQueue.peek();
                 if (student != null && student.getSubjectName().equals(subject)) {
-                    System.out.println("студент " + student.getNumber() + " с лабами по " + subject + " начинает сдавать лабы");
+                    System.out.println(Duration.between(Main.startTime, LocalTime.now()).toMinutes() + ":" +
+                            Duration.between(Main.startTime, LocalTime.now()).toSeconds() + " студент " +
+                            student.getNumber() + " с лабами по " + subject + " начинает сдавать лабы");
                     int labs = blockingQueue.take().getLabCount();
                     while (labs != 0) {
                         labs -= 5;
-                        System.out.println(subject + " студент "+ student.getNumber() +" сдал 5 лаб, осталось " + labs);
+                        System.out.println(Duration.between(Main.startTime, LocalTime.now()).toMinutes() + ":" +
+                                Duration.between(Main.startTime, LocalTime.now()).toSeconds() + " "
+                                + subject + " студент "+ student.getNumber() +" сдал 5 лаб, осталось " + labs);
                     }
                 }
             }
