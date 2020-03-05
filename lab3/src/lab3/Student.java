@@ -8,14 +8,6 @@ public class Student {
         return labCount;
     }
 
-    public void setLabCount(int labCount) {
-        this.labCount = labCount;
-    }
-
-    public void setSubjectName(String subjectName) {
-        this.subjectName = subjectName;
-    }
-
     public void setNumber(int number) {
         this.number = number;
     }

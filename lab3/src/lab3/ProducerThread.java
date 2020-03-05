@@ -23,14 +23,13 @@ public class ProducerThread implements Runnable {
     }
 
     private void generateStudents() throws InterruptedException {
-        while (Main.i.get() != 100){
+        while (true){
             Student student = new Student();
             student.setNumber(index++);
             System.out.println(Duration.between(Main.startTime, LocalTime.now()).toMinutes() + ":" +
                     Duration.between(Main.startTime, LocalTime.now()).toSeconds() +
                     " студент " + student.getNumber() + "  с лабами по " + student.getSubjectName() + " заходит в кабинет");
             blockingQueue.put(student);
-            Main.i.incrementAndGet();
         }
     }
 }

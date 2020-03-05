@@ -18,21 +18,22 @@ public class ConsumerThread implements Runnable{
     public void run() {
         try {
             while (true) {
-                if (Main.i.get() == 100 && blockingQueue.isEmpty())
-                    return;
-                Thread.sleep(1000);
                 Student student = blockingQueue.peek();
                 if (student != null && student.getSubjectName().equals(subject)) {
                     System.out.println(Duration.between(Main.startTime, LocalTime.now()).toMinutes() + ":" +
                             Duration.between(Main.startTime, LocalTime.now()).toSeconds() + " студент " +
                             student.getNumber() + " с лабами по " + subject + " начинает сдавать лабы");
                     int labs = blockingQueue.take().getLabCount();
+
                     while (labs != 0) {
+                        Thread.sleep(1000);
                         labs -= 5;
                         System.out.println(Duration.between(Main.startTime, LocalTime.now()).toMinutes() + ":" +
                                 Duration.between(Main.startTime, LocalTime.now()).toSeconds() + " "
                                 + subject + " студент "+ student.getNumber() +" сдал 5 лаб, осталось " + labs);
+
                     }
+
                 }
             }
         } catch (InterruptedException e) {
