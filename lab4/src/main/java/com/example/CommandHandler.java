@@ -17,7 +17,7 @@ public class CommandHandler {
     private static String select_range_query = "SELECT title FROM goods WHERE cost > ? AND cost < ?";
     private static String select_product_query = "SELECT cost FROM goods WHERE title = ?";
     private static String update_product_query = "UPDATE goods SET title = ? WHERE cost = ?";
-    private static String insert_product_query = "INSERT INTO goods (title, cost) VALUES (?, ?)";
+    static String insert_product_query = "INSERT INTO goods (title, cost) VALUES (?, ?)";
     private static String delete_product_query = "DELETE FROM goods WHERE title = ?";
 
     CommandHandler(String[] parsedCommand, Connection connection) {
@@ -25,7 +25,6 @@ public class CommandHandler {
         this.actionsByCommand = new HashMap<>();
         this.connection = connection;
         this.addActions();
-
     }
 
     void addActions() {
