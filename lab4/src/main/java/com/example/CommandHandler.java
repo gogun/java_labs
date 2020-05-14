@@ -7,20 +7,23 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class CommandHandler {
-    private Map<String, Consumer<String>> actionsByCommand;
+    private Map<String, Consumer<Logger>> actionsByCommand;
+
     private String[] parsedCommand;
     private Connection connection;
 
-    private static String select_all_query = "SELECT * FROM goods";
-    private static String select_range_query = "SELECT title FROM goods WHERE cost > ? AND cost < ?";
-    private static String select_product_query = "SELECT cost FROM goods WHERE title = ?";
-    private static String update_product_query = "UPDATE goods SET title = ? WHERE cost = ?";
-    static String insert_product_query = "INSERT INTO goods (title, cost) VALUES (?, ?)";
-    private static String delete_product_query = "DELETE FROM goods WHERE title = ?";
+    final static String select_all_query = "SELECT * FROM goods";
+    final static String select_range_query = "SELECT title FROM goods WHERE cost > ? AND cost < ?";
+    final static String select_product_query = "SELECT cost FROM goods WHERE title = ?";
+    final static String update_product_query = "UPDATE goods SET title = ? WHERE cost = ?";
+    final static String insert_product_query = "INSERT INTO goods (title, cost) VALUES (?, ?)";
+    final static String delete_product_query = "DELETE FROM goods WHERE title = ?";
 
-    CommandHandler(String[] parsedCommand, Connection connection) {
+    CommandHandler(final String[] parsedCommand, final Connection connection) {
         this.parsedCommand = parsedCommand;
         this.actionsByCommand = new HashMap<>();
         this.connection = connection;
@@ -28,7 +31,7 @@ public class CommandHandler {
     }
 
     void addActions() {
-        actionsByCommand.put("/show_all", command -> {
+        actionsByCommand.put("/show_all", logger -> {
             try (
                     PreparedStatement statement = connection.prepareStatement(select_all_query);
                     ResultSet response = statement.executeQuery()
@@ -39,11 +42,11 @@ public class CommandHandler {
                     System.out.println(title + " " + cost);
                 }
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.log(Level.SEVERE, "select all error", e);
             }
         });
 
-        actionsByCommand.put("/price", command -> {
+        actionsByCommand.put("/price", logger -> {
             try (PreparedStatement statement = connection.prepareStatement(select_product_query)) {
                 try {
                     statement.setString(1, parsedCommand[1]);
@@ -61,11 +64,11 @@ public class CommandHandler {
 
                 }
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.log(Level.SEVERE, "select any error", e);
             }
         });
 
-        actionsByCommand.put("/delete", command -> {
+        actionsByCommand.put("/delete", logger -> {
             try (PreparedStatement statement = connection.prepareStatement(delete_product_query)) {
                 try {
                     statement.setString(1, parsedCommand[1]);
@@ -79,11 +82,11 @@ public class CommandHandler {
                     System.out.println("Значение успешно удалено");
                 }
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.log(Level.SEVERE, "deleting error", e);
             }
         });
 
-        actionsByCommand.put("/change_price", command -> {
+        actionsByCommand.put("/change_price", logger -> {
             try (PreparedStatement statement = connection.prepareStatement(update_product_query)) {
                 try {
                     statement.setString(1, parsedCommand[1]);
@@ -98,11 +101,11 @@ public class CommandHandler {
                     System.out.println("Значение успешно обновлено");
                 }
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.log(Level.SEVERE, "update error", e);
             }
         });
 
-        actionsByCommand.put("/filter_by_price", command -> {
+        actionsByCommand.put("/filter_by_price", logger -> {
             try (PreparedStatement statement = connection.prepareStatement(select_range_query)) {
                 try {
                     statement.setInt(1, Integer.parseInt(parsedCommand[1]));
@@ -118,12 +121,13 @@ public class CommandHandler {
                     }
                 }
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.log(Level.SEVERE, "filter error", e);
             }
         });
 
-        actionsByCommand.put("/add", command -> {
-            try (PreparedStatement statement = connection.prepareStatement(insert_product_query)) {
+        actionsByCommand.put("/add", logger -> {
+            try (PreparedStatement statement
+                         = connection.prepareStatement(CommandHandler.insert_product_query)) {
                 try {
                     statement.setString(1, parsedCommand[1]);
                     statement.setInt(2, Integer.parseInt(parsedCommand[2]));
@@ -138,12 +142,12 @@ public class CommandHandler {
                     System.out.println("Такой товар уже существует");
                 }
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.log(Level.SEVERE, "insert error", e);
             }
         });
     }
 
-    public Map<String, Consumer<String>> getActionsByCommand() {
+    Map<String, Consumer<Logger>> getActionsByCommand() {
         return actionsByCommand;
     }
 }
