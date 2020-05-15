@@ -1,20 +1,35 @@
 package com.example;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.Scanner;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 public class Main {
 
-    private static void generateValues(Connection connection) throws SQLException {
-        String delete_query = "DELETE FROM goods";
-        try (PreparedStatement statement = connection.prepareStatement(delete_query)) {
-            statement.executeUpdate();
+    static private String dbUrl = "jdbc:postgresql://localhost:5432/postgres";
+    static private String username = "postgres";
+    static private String pass = "123";
+
+    private static void generateValues() throws SQLException {
+        Connection connection = DriverManager.getConnection(dbUrl, username, pass);
+        String create_query =
+                "create extension \"uuid-ossp\";\n" +
+                "CREATE TABLE IF NOT EXISTS goods (\n" +
+                "    id serial primary key ,\n" +
+                "    prodid UUID NOT NULL DEFAULT uuid_generate_v4(),\n" +
+                "    title varchar(255) unique ,\n" +
+                "    cost int\n" +
+                ");";
+        try (Statement statement = connection.createStatement()) {
+            statement.executeUpdate(create_query);
         }
+
+        String delete_query = "DELETE FROM goods";
+        try (Statement statement = connection.createStatement()) {
+            statement.executeUpdate(delete_query);
+        }
+
         try (PreparedStatement statement
                      = connection.prepareStatement(CommandHandler.insert_product_query)) {
             for (int i = 1; i < 11; i++) {
@@ -29,17 +44,14 @@ public class Main {
             System.out.println("Неправильная команда"));
 
     public static void main(String[] args) throws SQLException {
+        generateValues();
         Logger logger = Logger.getLogger(Main.class.getName());
         Scanner scanner = new Scanner(System.in);
         while (scanner.hasNextLine()) {
             String full_command = scanner.nextLine();
             String[] command_data = full_command.split(" ");
             String command = command_data[0];
-            String dbUrl = "jdbc:postgresql://localhost:5432/postgres";
-            String username = "postgres";
-            String pass = "123";
             try (Connection connection = DriverManager.getConnection(dbUrl, username, pass)) {
-                generateValues(connection);
                 CommandHandler ch = new CommandHandler(command_data, connection);
                 Consumer<Logger> action = ch
                         .getActionsByCommand()

@@ -1,9 +1,6 @@
 package com.example;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -19,7 +16,7 @@ public class CommandHandler {
     final static String select_all_query = "SELECT * FROM goods";
     final static String select_range_query = "SELECT title FROM goods WHERE cost > ? AND cost < ?";
     final static String select_product_query = "SELECT cost FROM goods WHERE title = ?";
-    final static String update_product_query = "UPDATE goods SET title = ? WHERE cost = ?";
+    final static String update_product_query = "UPDATE goods SET cost = ? WHERE title = ?";
     final static String insert_product_query = "INSERT INTO goods (title, cost) VALUES (?, ?)";
     final static String delete_product_query = "DELETE FROM goods WHERE title = ?";
 
@@ -33,8 +30,8 @@ public class CommandHandler {
     void addActions() {
         actionsByCommand.put("/show_all", logger -> {
             try (
-                    PreparedStatement statement = connection.prepareStatement(select_all_query);
-                    ResultSet response = statement.executeQuery()
+                    Statement statement = connection.createStatement();
+                    ResultSet response = statement.executeQuery(select_all_query)
             ) {
                 while (response.next()) {
                     String title = response.getString("title");
@@ -89,8 +86,8 @@ public class CommandHandler {
         actionsByCommand.put("/change_price", logger -> {
             try (PreparedStatement statement = connection.prepareStatement(update_product_query)) {
                 try {
-                    statement.setString(1, parsedCommand[1]);
-                    statement.setInt(2, Integer.parseInt(parsedCommand[2]));
+                    statement.setInt(1, Integer.parseInt(parsedCommand[2]));
+                    statement.setString(2, parsedCommand[1]);
                 } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
                     System.out.println("Неправильная команда");
                     return;
