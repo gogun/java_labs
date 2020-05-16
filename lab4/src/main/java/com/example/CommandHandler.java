@@ -14,7 +14,7 @@ public class CommandHandler {
     private Connection connection;
 
     final static String select_all_query = "SELECT * FROM goods";
-    final static String select_range_query = "SELECT title FROM goods WHERE cost > ? AND cost < ?";
+    final static String select_range_query = "SELECT title, cost FROM goods WHERE cost >= ? AND cost <= ?";
     final static String select_product_query = "SELECT cost FROM goods WHERE title = ?";
     final static String update_product_query = "UPDATE goods SET cost = ? WHERE title = ?";
     final static String insert_product_query = "INSERT INTO goods (title, cost) VALUES (?, ?)";
@@ -114,14 +114,15 @@ public class CommandHandler {
                 try (ResultSet response = statement.executeQuery()) {
                     while (response.next()) {
                         String title = response.getString("title");
-                        System.out.println(title);
+                        String cost = response.getString("cost");
+                        System.out.println(title + " " + cost);
                     }
                 }
             } catch (SQLException e) {
                 logger.log(Level.SEVERE, "filter error", e);
             }
         });
-
+        //обработать отрицательную цену товара
         actionsByCommand.put("/add", logger -> {
             try (PreparedStatement statement
                          = connection.prepareStatement(CommandHandler.insert_product_query)) {

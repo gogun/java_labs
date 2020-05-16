@@ -14,7 +14,6 @@ public class Main {
     private static void generateValues() throws SQLException {
         Connection connection = DriverManager.getConnection(dbUrl, username, pass);
         String create_query =
-                "create extension \"uuid-ossp\";\n" +
                 "CREATE TABLE IF NOT EXISTS goods (\n" +
                 "    id serial primary key ,\n" +
                 "    prodid UUID NOT NULL DEFAULT uuid_generate_v4(),\n" +
@@ -32,6 +31,7 @@ public class Main {
 
         try (PreparedStatement statement
                      = connection.prepareStatement(CommandHandler.insert_product_query)) {
+            //задавать кол-во генерируемых строк
             for (int i = 1; i < 11; i++) {
                 statement.setString(1, "tovar_" + i);
                 statement.setInt(2, i * 10);
