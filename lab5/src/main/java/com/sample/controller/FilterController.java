@@ -1,5 +1,6 @@
 package com.sample.controller;
 
+import com.sample.model.Good;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
@@ -12,14 +13,15 @@ import java.util.function.Consumer;
 
 import static javafx.scene.control.Alert.AlertType.WARNING;
 
-public class ChoosePageController implements Initializable {
+public class FilterController implements Initializable {
 
-    private Alert alert;
+
     @FXML
-    private TextField amount;
-    private Consumer<Integer> setter;
-    private Runnable callback;
-
+    private TextField min;
+    @FXML
+    private TextField max;
+    private Alert alert;
+    private Consumer<Good> action;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -30,25 +32,27 @@ public class ChoosePageController implements Initializable {
     }
 
     @FXML
-    private void setAmount() {
-        int num = -1;
+    private void filter() {
+        String min = this.min.getText();
+        String max = this.max.getText();
+
+
+        int numMin = -1;
+        int numMax = -1;
         try {
-            num = Integer.parseInt(amount.getText());
+            numMin = Integer.parseInt(min);
+            numMax = Integer.parseInt(max);
         } catch (NumberFormatException e) {
             alert.show();
         }
-        if (num > 0) {
-            setter.accept(num);
-            callback.run();
+        if (numMin > 0 && numMax > 0 && numMin < numMax) {
+            action.accept(new Good(String.valueOf(numMin), numMax));
         } else {
             alert.show();
         }
-
-
     }
 
-    public void setActions(Consumer<Integer> setter, Runnable callback) {
-        this.setter = setter;
-        this.callback = callback;
+    public void setAction(Consumer<Good> action) {
+        this.action = action;
     }
 }

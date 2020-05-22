@@ -16,12 +16,4 @@ public class Good {
     public Integer getCost() {
         return cost;
     }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setCost(int cost) {
-        this.cost = cost;
-    }
 }

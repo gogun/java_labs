@@ -14,11 +14,12 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.net.URL;
 import java.util.Comparator;
 import java.util.ResourceBundle;
-import java.util.concurrent.atomic.AtomicReference;
 
+import static javafx.scene.control.Alert.AlertType.INFORMATION;
 import static javafx.scene.control.Alert.AlertType.WARNING;
 
 public class MainController implements Initializable {
@@ -45,7 +46,30 @@ public class MainController implements Initializable {
     }
 
     private void showData() {
-        data = dataBaseHandler.getActionsByCommand().get("/show_all").apply(null);
+//        data.clear();
+//        new Thread(() -> {
+//            data.addAll(dataBaseHandler.getActionsByCommand().get("/show_all").apply(null));
+//            data.sort(Comparator.comparing(Good::getCost));
+//            name.setCellValueFactory(new PropertyValueFactory<>("name"));
+//            cost.setCellValueFactory(new PropertyValueFactory<>("cost"));
+//
+//            table.setItems(data);
+//        }).start();
+        data = (dataBaseHandler.getActionsByCommand().get("/show_all").apply(null));
+        data.sort(Comparator.comparing(Good::getCost));
+        name.setCellValueFactory(new PropertyValueFactory<>("name"));
+        cost.setCellValueFactory(new PropertyValueFactory<>("cost"));
+
+        table.setItems(data);
+        table.getSelectionModel().selectedItemProperty().addListener((observableValue, good, t1) -> {
+            if (t1 != null) {
+                selected = t1;
+            }
+        });
+    }
+
+    private void showData(ObservableList<Good> data) {
+        this.data = data;
         data.sort(Comparator.comparing(Good::getCost));
         name.setCellValueFactory(new PropertyValueFactory<>("name"));
         cost.setCellValueFactory(new PropertyValueFactory<>("cost"));
@@ -75,13 +99,16 @@ public class MainController implements Initializable {
     }
 
     private void changePriceQuery() {
-        new Thread(() -> {
-            dataBaseHandler.getActionsByCommand()
-                    .get("/change_price")
-                    .apply(new Good(selected.getName(), newPrice));
-            showData();
-            selected = null;
-        }).start();
+        if (selected == null) {
+            goodNotSelected();
+        } else {
+            new Thread(() -> {
+                dataBaseHandler.getActionsByCommand()
+                        .get("/change_price")
+                        .apply(new Good(selected.getName(), newPrice));
+                showData();
+            }).start();
+        }
 
     }
 
@@ -95,7 +122,6 @@ public class MainController implements Initializable {
                 showData();
                 selected = null;
             }).start();
-
         }
     }
 
@@ -112,8 +138,58 @@ public class MainController implements Initializable {
         stage.setScene(scene);
         stage.setTitle("Поиск по товарам");
         ChooseGoodPageController controller = loader.getController();
-        controller.setActions((goodName) -> dataBaseHandler.getActionsByCommand().get("/price").apply(new Good(goodName, 2)));
+        controller.setActions((goodName) ->
+                dataBaseHandler.getActionsByCommand().get("/price").apply(new Good(goodName, 2)));
         stage.show();
+    }
+
+    @FXML
+    private void add() throws IOException {
+        final FXMLLoader loader = new FXMLLoader(getClass().getResource("/addingGood.fxml"));
+        Scene scene = new Scene(loader.load());
+        Stage stage = new Stage();
+        stage.setScene(scene);
+        stage.setTitle("Добавление товара");
+        AddingController controller = loader.getController();
+        controller.setAction(this::dbAdding);
+        stage.show();
+    }
+
+    private void dbAdding(Good good) {
+        if (dataBaseHandler.getActionsByCommand().get("/add").apply(good) == null) {
+            Alert alert = new Alert(WARNING, "", ButtonType.OK);
+            alert.setTitle("Ошибка");
+            alert.setHeaderText("Причина: ");
+            alert.setContentText("Такой товар уже существует");
+            alert.show();
+        } else {
+            showData();
+            Alert alert = new Alert(INFORMATION, "", ButtonType.OK);
+            alert.setTitle("Результат");
+            alert.setHeaderText("Был создан товар: ");
+            alert.setContentText("Название - " + good.getName() + " Цена - " + good.getCost());
+            alert.show();
+        }
+    }
+
+    @FXML
+    private void filter() throws IOException {
+        final FXMLLoader loader = new FXMLLoader(getClass().getResource("/filter.fxml"));
+        Scene scene = new Scene(loader.load());
+        Stage stage = new Stage();
+        stage.setScene(scene);
+        stage.setTitle("Фильтрация Товаров");
+        FilterController controller = loader.getController();
+        controller.setAction(this::dbFilter);
+        stage.show();
+    }
+
+    private void dbFilter(Good good) {
+        new Thread(() -> {
+            showData(dataBaseHandler.getActionsByCommand()
+                    .get("/filter_by_price")
+                    .apply(good));
+        }).start();
     }
 
     private void goodNotSelected() {

@@ -2,20 +2,15 @@ package com.sample.handler;
 
 import com.sample.AppFX;
 import com.sample.model.Good;
-import javafx.beans.InvalidationListener;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
 
 import java.sql.*;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import static javafx.scene.control.Alert.AlertType.WARNING;
 
 public class DataBaseHandler {
     private Map<String, Function<Good, ObservableList<Good>>> actionsByCommand;
@@ -23,8 +18,6 @@ public class DataBaseHandler {
     private final String dbUrl = "jdbc:postgresql://localhost:5432/postgres";
     private final String username = "postgres";
     private final String pass = "123";
-
-    private final Alert alert = new Alert(WARNING, "", ButtonType.OK);
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -63,7 +56,7 @@ public class DataBaseHandler {
             statement.executeUpdate(create_query);
         }
         try (PreparedStatement statement
-                     = connection.prepareStatement(DataBaseHandler.insert_product_query)) {
+                     = connection.prepareStatement(insert_product_query)) {
             for (int i = 1; i < AppFX.num + 1; i++) {
                 statement.setString(1, "tovar_" + i);
                 statement.setInt(2, i * 10);
@@ -134,16 +127,13 @@ public class DataBaseHandler {
             }
             return null;
         });
-//
+
         actionsByCommand.put("/change_price", good -> {
             try (PreparedStatement statement = connection.prepareStatement(update_product_query)) {
-                try {
-                    statement.setInt(1, good.getCost());
-                    statement.setString(2, good.getName());
-                } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
-                    System.out.println("Неправильная команда");
-                    return null;
-                }
+
+                statement.setInt(1, good.getCost());
+                statement.setString(2, good.getName());
+
                 if (statement.executeUpdate() == 0) {
                     System.out.println("Такого товара нет");
                 } else {
@@ -154,48 +144,46 @@ public class DataBaseHandler {
             }
             return null;
         });
-//
-//        actionsByCommand.put("/filter_by_price", logger -> {
-//            try (PreparedStatement statement = connection.prepareStatement(select_range_query)) {
-//                try {
-//                    statement.setInt(1, Integer.parseInt(parsedCommand[1]));
-//                    statement.setInt(2, Integer.parseInt(parsedCommand[2]));
-//                } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
-//                    System.out.println("Неправильная команда");
-//                    return;
-//                }
-//                try (ResultSet response = statement.executeQuery()) {
-//                    while (response.next()) {
-//                        String title = response.getString("title");
-//                        String cost = response.getString("cost");
-//                        System.out.println(title + " " + cost);
-//                    }
-//                }
-//            } catch (SQLException e) {
-//                logger.log(Level.SEVERE, "filter error", e);
-//            }
-//        });
-//        //обработать отрицательную цену товара
-//        actionsByCommand.put("/add", logger -> {
-//            try (PreparedStatement statement
-//                         = connection.prepareStatement(insert_product_query)) {
-//                try {
-//                    statement.setString(1, parsedCommand[1]);
-//                    statement.setInt(2, Integer.parseInt(parsedCommand[2]));
-//                } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
-//                    System.out.println("Неправильная команда");
-//                    return;
-//                }
-//                try {
-//                    statement.executeUpdate();
-//                    System.out.println("Товар был успешно добавлен");
-//                } catch (org.postgresql.util.PSQLException e) {
-//                    System.out.println("Такой товар уже существует");
-//                }
-//            } catch (SQLException e) {
-//                logger.log(Level.SEVERE, "insert error", e);
-//            }
-//        });
+        actionsByCommand.put("/add", good -> {
+            ObservableList<Good> goods = FXCollections.observableArrayList();
+            try (PreparedStatement statement
+                         = connection.prepareStatement(insert_product_query)) {
+                statement.setString(1, good.getName());
+                statement.setInt(2, good.getCost());
+
+                try {
+                    statement.executeUpdate();
+                    goods.add(good);
+                    System.out.println("Товар был успешно добавлен");
+                } catch (org.postgresql.util.PSQLException e) {
+                    System.out.println("Такой товар уже существует");
+                    return null;
+                }
+            } catch (SQLException e) {
+                logger.log(Level.SEVERE, "insert error", e);
+            }
+            return goods;
+        });
+
+        actionsByCommand.put("/filter_by_price", good -> {
+            ObservableList<Good> data = FXCollections.observableArrayList();
+            try (PreparedStatement statement = connection.prepareStatement(select_range_query)) {
+                statement.setInt(1, Integer.parseInt(good.getName()));
+                statement.setInt(2, good.getCost());
+                try (ResultSet response = statement.executeQuery()) {
+                    while (response.next()) {
+                        String title = response.getString("title");
+                        String cost = response.getString("cost");
+                        System.out.println(title + " " + cost);
+                        data.add(new Good(title, Integer.parseInt(cost)));
+                    }
+                }
+            } catch (SQLException e) {
+                logger.log(Level.SEVERE, "filter error", e);
+            }
+            return data;
+        });
+
     }
 
     public Map<String, Function<Good, ObservableList<Good>>> getActionsByCommand() {

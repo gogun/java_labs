@@ -1,5 +1,6 @@
 package com.sample.controller;
 
+import com.sample.model.Good;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
@@ -12,14 +13,14 @@ import java.util.function.Consumer;
 
 import static javafx.scene.control.Alert.AlertType.WARNING;
 
-public class ChoosePageController implements Initializable {
+public class AddingController implements Initializable {
 
-    private Alert alert;
     @FXML
-    private TextField amount;
-    private Consumer<Integer> setter;
-    private Runnable callback;
-
+    private TextField name;
+    @FXML
+    private TextField cost;
+    private Alert alert;
+    private Consumer<Good> action;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -30,25 +31,28 @@ public class ChoosePageController implements Initializable {
     }
 
     @FXML
-    private void setAmount() {
-        int num = -1;
+    private void setGood() {
+        String name = this.name.getText();
+        String cost = this.cost.getText();
+
+
+        int numCost = -1;
         try {
-            num = Integer.parseInt(amount.getText());
+            numCost = Integer.parseInt(cost);
         } catch (NumberFormatException e) {
             alert.show();
         }
-        if (num > 0) {
-            setter.accept(num);
-            callback.run();
+        if (numCost > 0) {
+            action.accept(new Good(name, numCost));
+//                Stage stage = (Stage) this.name.getScene().getWindow();
+//                stage.close();
         } else {
             alert.show();
         }
 
-
     }
 
-    public void setActions(Consumer<Integer> setter, Runnable callback) {
-        this.setter = setter;
-        this.callback = callback;
+    public void setAction(Consumer<Good> action) {
+        this.action = action;
     }
 }
