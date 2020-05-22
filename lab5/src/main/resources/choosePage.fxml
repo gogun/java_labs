@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="278.0" prefWidth="498.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.sample.controller.ChoosePageController">
+   <children>
+      <TextField fx:id="amount" layoutX="164.0" layoutY="113.0" />
+      <Button layoutX="218.0" layoutY="212.0" mnemonicParsing="false" onAction="#setAmount" text="ОК" />
+   </children>
+</AnchorPane>
