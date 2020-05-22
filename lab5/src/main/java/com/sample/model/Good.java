@@ -4,7 +4,7 @@ public class Good {
     private String name;
     private int cost;
 
-    public Good(String name, int cost) {
+    public Good(String name, Integer cost) {
         this.name = name;
         this.cost = cost;
     }
@@ -13,7 +13,15 @@ public class Good {
         return name;
     }
 
-    public int getCost() {
+    public Integer getCost() {
         return cost;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setCost(int cost) {
+        this.cost = cost;
     }
 }

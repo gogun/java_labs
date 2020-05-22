@@ -10,26 +10,20 @@ import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 
 public class AppFX extends Application {
+
     static public Integer num;
 
     private Stage primaryStage;
     private AnchorPane rootLayout;
 
-    public DataBaseHandler getDbHandler() {
-        return dbHandler;
-    }
-
     private DataBaseHandler dbHandler;
+
     @Override
     public void start(Stage primaryStage) {
         this.primaryStage = primaryStage;
         showPrepWindow();
-
     }
 
     private void showPrepWindow() {
@@ -40,7 +34,7 @@ public class AppFX extends Application {
             primaryStage.setScene(scene);
             primaryStage.setTitle("Выберите начальное кол-во товаров");
             ChoosePageController controller = loader.getController();
-            controller.setAppFX(this);
+            controller.setActions(this::setNum, this::showMainWindow);
             primaryStage.show();
         } catch (IOException e) {
             e.printStackTrace();
@@ -61,6 +55,10 @@ public class AppFX extends Application {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void setNum(Integer num) {
+        AppFX.num = num;
     }
 
     @Override

@@ -2,15 +2,15 @@ package com.sample.handler;
 
 import com.sample.AppFX;
 import com.sample.model.Good;
+import javafx.beans.InvalidationListener;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -64,7 +64,7 @@ public class DataBaseHandler {
         }
         try (PreparedStatement statement
                      = connection.prepareStatement(DataBaseHandler.insert_product_query)) {
-            for (int i = 1; i < AppFX.num+1; i++) {
+            for (int i = 1; i < AppFX.num + 1; i++) {
                 statement.setString(1, "tovar_" + i);
                 statement.setInt(2, i * 10);
                 statement.executeUpdate();
@@ -102,41 +102,33 @@ public class DataBaseHandler {
         });
 
         actionsByCommand.put("/price", good -> {
+            Good cost = null;
             try (PreparedStatement statement = connection.prepareStatement(select_product_query)) {
-                try {
-                    statement.setString(1, good.getName());
-                } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
-                    System.out.println("Неправильная команда");
-                    return null;
-                }
+
+                statement.setString(1, good.getName());
+
                 try (ResultSet response = statement.executeQuery()) {
                     if (response.next()) {
-                        String cost = response.getString("cost");
-                        System.out.println(cost);
+                        cost = new Good(good.getName(), Integer.parseInt(response.getString("cost")));
+                        System.out.println(cost.getCost());
                     } else {
                         System.out.println("Такого товара нет");
+                        return null;
                     }
 
                 }
             } catch (SQLException e) {
                 logger.log(Level.SEVERE, "select any error", e);
             }
-            return null;
+            ObservableList<Good> goods = FXCollections.observableArrayList();
+            goods.add(cost);
+            return goods;
         });
 
         actionsByCommand.put("/delete", good -> {
             try (PreparedStatement statement = connection.prepareStatement(delete_product_query)) {
-                try {
-                    statement.setString(1, good.getName());
-                } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
-                    System.out.println("Неправильная команда");
-                    return null;
-                }
-                if (statement.executeUpdate() == 0) {
-                    System.out.println("Такого товара нет");
-                } else {
-                    System.out.println("Значение успешно удалено");
-                }
+                statement.setString(1, good.getName());
+                statement.executeUpdate();
             } catch (SQLException e) {
                 logger.log(Level.SEVERE, "deleting error", e);
             }

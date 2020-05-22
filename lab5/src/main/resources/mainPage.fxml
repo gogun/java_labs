@@ -7,13 +7,16 @@
 <children>
     <ToolBar prefHeight="40.0" prefWidth="600.0">
         <items>
-            <Button onAction="#changePrice" mnemonicParsing="false" text="Изменить цену товара" />
-            <Button onAction="#deleteGood" mnemonicParsing="false" text="удалить товар" />
+            <Button mnemonicParsing="false" onAction="#changePrice" text="Изменить цену товара" />
+            <Button mnemonicParsing="false" onAction="#deleteGood" text="Удалить товар" />
         </items>
     </ToolBar>
     <SplitPane dividerPositions="0.29797979797979796" layoutY="40.0" prefHeight="561.0" prefWidth="600.0">
         <items>
-            <AnchorPane maxWidth="120.0" minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0" />
+            <AnchorPane maxWidth="120.0" minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+               <children>
+                  <Button layoutX="14.0" layoutY="16.0" mnemonicParsing="false" onAction="#search" text="Поиск" />
+               </children></AnchorPane>
             <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="261.0" prefWidth="416.0">
                 <TableView fx:id="table" prefHeight="559.0" prefWidth="470.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                   <columns>

@@ -9,16 +9,17 @@ import javafx.scene.control.TextField;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.function.Consumer;
 
 import static javafx.scene.control.Alert.AlertType.WARNING;
 
 public class ChoosePageController implements Initializable {
 
-    private AppFX appFX;
     private Alert alert;
     @FXML
     private TextField amount;
-
+    private Consumer<Integer> setter;
+    private Runnable callback;
 
 
     @Override
@@ -38,8 +39,8 @@ public class ChoosePageController implements Initializable {
             alert.show();
         }
         if (num >= 0) {
-            appFX.num = num;
-            appFX.showMainWindow();
+            setter.accept(num);
+            callback.run();
         } else {
             alert.show();
         }
@@ -47,7 +48,8 @@ public class ChoosePageController implements Initializable {
 
     }
 
-    public void setAppFX(AppFX appFX) {
-        this.appFX = appFX;
+    public void setActions(Consumer<Integer> setter, Runnable callback) {
+        this.setter = setter;
+        this.callback = callback;
     }
 }
