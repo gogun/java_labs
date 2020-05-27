@@ -8,4 +8,8 @@ public class GoodNotFoundException extends RuntimeException{
     public GoodNotFoundException(Long id) {
         super("Couldn't find good with id " + id);
     }
+
+    public GoodNotFoundException(String name) {
+        super("Couldn't find good with name " + name);
+    }
 }

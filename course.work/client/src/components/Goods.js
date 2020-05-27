@@ -1,5 +1,34 @@
-import React, {Component} from 'react';
+import React, {Component, useState} from 'react';
 import MaterialTable from 'material-table';
+import TextField from "@material-ui/core/TextField";
+
+const validate = {
+    fullName: s => (s.length > 3 ? "" : "Name not long enough"),
+    email: s => (s.length > 3 ? "" : "Not valid email")
+};
+
+const editComponent = ({ onChange, value, ...rest }) => {
+    const [currentValue, setValue] = useState(value);
+    const [error, setError] = useState("");
+    const change = e => {
+        const newValue = e.target.value;
+        setValue(newValue);
+        const errorMessage = validate[rest.columnDef.field](newValue);
+        setError(errorMessage);
+        if (!errorMessage) {
+            onChange(newValue);
+        }
+    };
+    return (
+        <TextField
+            {...rest}
+            error={error}
+            helperText={error}
+            value={currentValue}
+            onChange={change}
+        />
+    );
+};
 
 class Goods extends Component {
     constructor(props) {
@@ -13,10 +42,24 @@ class Goods extends Component {
             ],
 
             data: [
-                { id: null, name: "tovar_3", priority: 2, left: 0 }
+                { id: null, name: null, priority: null, left: null, uuid: null }
             ],
         }
     }
+
+    makeResponse = (body, data) => {
+        let obj = {
+            goods: {},
+            count:0
+        };
+        obj.count = data.left;
+        obj.goods = body;
+        if (data.uuid != null) {
+            obj.id = data.uuid
+        }
+
+        return obj;
+    };
 
     async componentDidMount() {
         const response_goods = await fetch('/api/goods/all');
@@ -32,18 +75,20 @@ class Goods extends Component {
         });
         const list = await response_amounts.json();
         body.map((good, index) => {
-            good.left = list[index]
+            good.left = list[index].amount;
+            good.uuid = list[index].uuid;
         });
         this.setState({data: body, isLoading: false});
     }
 
     render() {
+
         if (this.state.isLoading) {
             return <p>Загрузка...</p>;
         }
+
         return (
             <div>
-                {console.log(this.state.data)}
                 <MaterialTable
                     localization={{
                         pagination: {
@@ -82,7 +127,7 @@ class Goods extends Component {
                                 setTimeout(async () => {
                                     resolve();
 
-                                    const response = await fetch('/api/goods/add', {
+                                    const response_good = await fetch('/api/goods/add', {
                                         method: "POST",
                                         dataType: 'json',
                                         body: JSON.stringify(newData),
@@ -90,22 +135,56 @@ class Goods extends Component {
                                             "Content-Type": "application/json"
                                         }
                                     });
-                                    const body = await response.json();
+                                    let body = await response_good.json();
+
+                                    if (newData.left != null) {
+                                        await fetch('/api/warehouse/add', {
+                                            method: "POST",
+                                            dataType: 'json',
+                                            body: JSON.stringify(this.makeResponse(body, newData)),
+                                            headers: {
+                                                "Content-Type": "application/json"
+                                            }
+                                        });
+                                    }
                                     this.setState((prevState) => {
                                         const data = [...prevState.data];
-                                        data.push(body);
+                                        data.push(newData);
 
                                         return { ...prevState, data };
                                     });
-                                    this.componentDidMount();
+                                    // this.componentDidMount();
                                 }, 600);
 
                             }),
                         onRowUpdate: (newData, oldData) =>
                             new Promise((resolve) => {
-                                setTimeout(() => {
+                                setTimeout(async () => {
                                     resolve();
                                     if (oldData) {
+
+                                        const response_good = await fetch('/api/goods/update', {
+                                            method: "PUT",
+                                            dataType: 'json',
+                                            body: JSON.stringify(newData),
+                                            headers: {
+                                                "Content-Type": "application/json"
+                                            }
+                                        });
+                                        let body = await response_good.json();
+
+                                        if (newData.left != null) {
+                                            await fetch('/api/warehouse/update', {
+                                                method: "PUT",
+                                                dataType: 'json',
+                                                body: JSON.stringify(this.makeResponse(body, newData)),
+                                                headers: {
+                                                    "Content-Type": "application/json"
+                                                }
+                                            });
+                                        }
+
+
                                         this.setState((prevState) => {
                                             const data = [...prevState.data];
                                             data[data.indexOf(oldData)] = newData;

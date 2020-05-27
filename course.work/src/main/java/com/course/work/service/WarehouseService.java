@@ -6,6 +6,7 @@ import com.course.work.entity.WarehouseTwo;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface WarehouseService {
     List<WarehouseOne> listWarehouseOne();
@@ -16,9 +17,13 @@ public interface WarehouseService {
 
     void addGoodToTwo(WarehouseTwo warehouseTwo);
 
-    Optional<WarehouseOne> findInOneById(Long id);
+    Optional<WarehouseOne> findInOneById(UUID id);
 
-    Optional<WarehouseTwo> findInTwoById(Long id);
+    Optional<WarehouseTwo> findInTwoById(UUID id);
+
+    Optional<WarehouseOne> findByGoodsIdOne(Long id);
+
+    Optional<WarehouseTwo> findByGoodsIdTwo(Long id);
 
     Long sizeOne();
 

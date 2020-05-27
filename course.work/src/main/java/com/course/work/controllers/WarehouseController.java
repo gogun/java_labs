@@ -4,14 +4,14 @@ import com.course.work.entity.Goods;
 import com.course.work.entity.WarehouseOne;
 import com.course.work.entity.WarehouseTwo;
 import com.course.work.service.WarehouseService;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/warehouse")
@@ -22,33 +22,34 @@ public class WarehouseController {
         this.warehouseService = warehouseService;
     }
 
-    private Integer getId(Long goodId) {
-        AtomicInteger count = new AtomicInteger(0);
-        warehouseService.listWarehouseOne().stream()
-                .forEach((elem) -> {
-                    if (elem.getGoods().getId().equals(goodId)) {
-                        count.addAndGet(elem.getCount());
-                    }
-                });
-        warehouseService.listWarehouseTwo().stream()
-                .forEach((elem) -> {
-                    if (elem.getGoods().getId().equals(goodId)) {
-                        count.addAndGet(elem.getCount());
-                    }
-                });
-        return count.get();
+    @Data
+    @AllArgsConstructor
+    private static class Pair {
+        private UUID uuid;
+        private Integer amount;
     }
 
+
     @PostMapping("/left")
-    public ResponseEntity<List<Integer>> getGoodsLeft(@RequestBody List<Goods> goods) {
-        List<Integer> result = new ArrayList<>();
-        for (Goods elem : goods) {
-            result.add(getId(elem.getId()));
+    public ResponseEntity<List<Pair>> getGoodsLeft(@RequestBody List<Goods> goods) {
+        List<Pair> result = new LinkedList<>();
+        for (Goods good : goods) {
+            int size = result.size();
+            warehouseService.findByGoodsIdOne(good.getId()).ifPresent((found) -> {
+                result.add(new Pair(found.getId(), found.getCount()));
+            });
+
+            warehouseService.findByGoodsIdTwo(good.getId()).ifPresent((found) -> {
+                result.add(new Pair(found.getId(), found.getCount()));
+            });
+            if (size == result.size()) {
+                result.add(new Pair(null, 0));
+            }
         }
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
-    @GetMapping("/1")
+    @GetMapping("/all")
     public ResponseEntity<List<WarehouseOne>> getWarehouseOneList() {
         List<WarehouseOne> warehouseOneList = warehouseService.listWarehouseOne();
         for (WarehouseTwo elem : warehouseService.listWarehouseTwo()) {
@@ -57,18 +58,38 @@ public class WarehouseController {
         return new ResponseEntity<>(warehouseOneList, HttpStatus.OK);
     }
 
-    @GetMapping("/2")
-    public ResponseEntity<List<WarehouseTwo>> getWarehouseTwoList() {
-        return new ResponseEntity<>(warehouseService.listWarehouseTwo(), HttpStatus.OK);
+    @PostMapping("/add")
+    public ResponseEntity<WarehouseOne> addToWarehouse(@RequestBody WarehouseOne warehouseOne) {
+        if (warehouseService.sizeOne() > warehouseService.sizeTwo()) {
+            warehouseService.addGoodToTwo(new WarehouseTwo(warehouseOne.getId(),
+                    warehouseOne.getGoods(), warehouseOne.getCount()));
+        } else {
+            warehouseService.addGoodToOne(warehouseOne);
+        }
+
+        return new ResponseEntity<>(warehouseOne, HttpStatus.OK);
     }
 
-    @PostMapping("/add/1")
-    public void addToWarehouse(@RequestBody WarehouseOne warehouseOne) {
-        warehouseService.addGoodToOne(warehouseOne);
-    }
+    @PutMapping("/update")
+    public ResponseEntity<WarehouseOne> updateWarehouse(@RequestBody WarehouseOne warehouseOne) {
 
-    @PostMapping("/add/2")
-    public void addToWarehouse(@RequestBody WarehouseTwo warehouseTwo) {
-        warehouseService.addGoodToTwo(warehouseTwo);
+        if (warehouseOne.getId() == null) {
+            return addToWarehouse(warehouseOne);
+        }
+        warehouseService.findInOneById(warehouseOne.getId()).ifPresent((res) -> {
+//            warehouse.setCount(warehouseOne.getCount());
+//            warehouse.setGoods(res.getGoods());
+//            warehouse.setId(res.getId());
+            warehouseService.addGoodToOne(warehouseOne);
+        });
+        warehouseService.findInTwoById(warehouseOne.getId()).ifPresent((res) -> {
+//            warehouse.setCount(warehouseOne.getCount());
+//            warehouse.setGoods(res.getGoods());
+//            warehouse.setId(res.getId());
+            warehouseService.addGoodToTwo(new WarehouseTwo(warehouseOne.getId(), warehouseOne.getGoods(),
+                    warehouseOne.getCount()));
+        });
+
+        return new ResponseEntity<>(warehouseOne, HttpStatus.OK);
     }
 }

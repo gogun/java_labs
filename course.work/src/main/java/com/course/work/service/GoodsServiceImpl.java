@@ -35,6 +35,7 @@ public class GoodsServiceImpl implements GoodsService {
 
     @Override
     public Optional<Goods> findById(Long id) {
+
         return goodsRepository.findById(id);
     }
 }

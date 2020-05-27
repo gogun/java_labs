@@ -40,16 +40,15 @@ public class GoodsController {
         goodsService.deleteGood(id);
     }
 
-    @PutMapping("/update/{id}")
-    public ResponseEntity<Goods> updateGood(@PathVariable Long id, @RequestParam String name,
-                           @RequestParam Float priority) {
-        return new ResponseEntity<>(goodsService.findById(id)
+    @PutMapping("/update")
+    public ResponseEntity<Goods> updateGood(@RequestBody Goods goods) {
+        return new ResponseEntity<>(goodsService.findById(goods.getId())
                 .map(good -> {
-                    good.setName(name);
-                    good.setPriority(priority);
+                    good.setName(goods.getName());
+                    good.setPriority(goods.getPriority());
 
-                    return good;
-                }).orElseThrow(() -> new GoodNotFoundException(id)), HttpStatus.OK);
+                    return goodsService.addGood(good);
+                }).orElseThrow(() -> new GoodNotFoundException(goods.getId())), HttpStatus.OK);
     }
 
 }
