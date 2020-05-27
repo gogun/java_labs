@@ -47,7 +47,8 @@ class Goods extends Component {
                 <MaterialTable
                     localization={{
                         pagination: {
-                            labelDisplayedRows: '{from}-{to} из {count}'
+                            labelDisplayedRows: '{from}-{to} из {count}',
+                            labelRowsSelect: 'строк'
                         },
                         toolbar: {
                             nRowsSelected: '{0} строк выбрано',
@@ -67,6 +68,7 @@ class Goods extends Component {
                                 cancelTooltip: 'Отменить',
                                 saveTooltip: 'Подтвердить'
                             },
+                            addTooltip: 'Добавить',
                             deleteTooltip: 'Удалить',
                             editTooltip: 'Редактировать'
                         }
