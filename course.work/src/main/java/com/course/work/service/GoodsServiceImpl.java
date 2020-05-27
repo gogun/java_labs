@@ -2,6 +2,7 @@ package com.course.work.service;
 
 import com.course.work.entity.Goods;
 import com.course.work.repository.GoodsRepository;
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
