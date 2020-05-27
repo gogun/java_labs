@@ -10,6 +10,7 @@ import javax.persistence.*;
 @Data
 @Entity
 @NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "warehouse1")
 public class WarehouseOne {
     @Id
@@ -18,15 +19,9 @@ public class WarehouseOne {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "goods_id", nullable = false)
+    @JoinColumn(name = "goods_id", nullable = false, unique = true)
     private Goods goods;
 
     @Column(name = "good_count", nullable = false)
     private Integer count;
-
-
-    public WarehouseOne(Goods goods, Integer count) {
-        this.goods = goods;
-        this.count = count;
-    }
 }

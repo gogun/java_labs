@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -21,8 +22,7 @@ public class WarehouseController {
         this.warehouseService = warehouseService;
     }
 
-    @GetMapping("/left/{goodId}")
-    public ResponseEntity<Integer> getGoodsLeft(@PathVariable Long goodId) {
+    private Integer getId(Long goodId) {
         AtomicInteger count = new AtomicInteger(0);
         warehouseService.listWarehouseOne().stream()
                 .forEach((elem) -> {
@@ -36,12 +36,25 @@ public class WarehouseController {
                         count.addAndGet(elem.getCount());
                     }
                 });
-        return new ResponseEntity<>(count.get(), HttpStatus.OK);
+        return count.get();
+    }
+
+    @PostMapping("/left")
+    public ResponseEntity<List<Integer>> getGoodsLeft(@RequestBody List<Goods> goods) {
+        List<Integer> result = new ArrayList<>();
+        for (Goods elem : goods) {
+            result.add(getId(elem.getId()));
+        }
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     @GetMapping("/1")
     public ResponseEntity<List<WarehouseOne>> getWarehouseOneList() {
-        return new ResponseEntity<>(warehouseService.listWarehouseOne(), HttpStatus.OK);
+        List<WarehouseOne> warehouseOneList = warehouseService.listWarehouseOne();
+        for (WarehouseTwo elem : warehouseService.listWarehouseTwo()) {
+            warehouseOneList.add(new WarehouseOne(elem.getId(), elem.getGoods(), elem.getCount()));
+        }
+        return new ResponseEntity<>(warehouseOneList, HttpStatus.OK);
     }
 
     @GetMapping("/2")

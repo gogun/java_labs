@@ -1,9 +1,7 @@
 package com.course.work.entity;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 
 import javax.persistence.*;
 
@@ -16,7 +14,7 @@ public class Goods {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "name", nullable = false, length = 50)
+    @Column(name = "name", nullable = false, length = 50, unique = true)
     private String name;
 
     @Column(name = "priority", nullable = false)

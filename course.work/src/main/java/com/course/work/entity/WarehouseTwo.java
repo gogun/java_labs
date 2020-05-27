@@ -16,7 +16,7 @@ public class WarehouseTwo {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "goods_id", nullable = false)
+    @JoinColumn(name = "goods_id", nullable = false, unique = true)
     private Goods goods;
 
     @Column(name = "good_count", nullable = false)
