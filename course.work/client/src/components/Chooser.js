@@ -4,11 +4,6 @@ import Sales from "./Sales";
 
 
 class Chooser extends Component {
-    constructor(props) {
-        super(props);
-    }
-
-
     render() {
         const switchViews = (view) => {
             switch (view) {

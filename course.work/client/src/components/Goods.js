@@ -1,13 +1,26 @@
 import React, {Component, useState} from 'react';
 import MaterialTable from 'material-table';
 import TextField from "@material-ui/core/TextField";
+import Alert from '@material-ui/lab/Alert';
+import IconButton from "@material-ui/core/IconButton";
+import CloseIcon from '@material-ui/icons/Close';
+import Collapse from "@material-ui/core/Collapse";
+import AlertTitle from "@material-ui/lab/AlertTitle";
 
 const validate = {
-    fullName: s => (s.length > 3 ? "" : "Name not long enough"),
-    email: s => (s.length > 3 ? "" : "Not valid email")
+
+    name: s => {
+        if (s.length > 0 ){
+            return ""
+        } else {
+            return "Введите название товара"
+        }
+    },
+    priority: s => ((!isNaN(parseInt(s)) && parseInt(s) > 0) ? "" : "Некорректный приоритет"),
+    left: s => ((!isNaN(parseInt(s)) && parseInt(s) > 0) ? "" : "Некорректное число")
 };
 
-const editComponent = ({ onChange, value, ...rest }) => {
+const EditComponent = ({ onChange, value, ...rest }) => {
     const [currentValue, setValue] = useState(value);
     const [error, setError] = useState("");
     const change = e => {
@@ -30,19 +43,21 @@ const editComponent = ({ onChange, value, ...rest }) => {
     );
 };
 
+const editComponent = EditComponent;
+
 class Goods extends Component {
     constructor(props) {
         super(props);
         this.state = {
+            open: false,
             isLoading: true,
-            columns: [
-                { title: 'Название товара', field:'name' },
-                { title: 'Приоритет', field: 'priority' },
-                {title: 'Остаток на складе', field: 'left'},
-            ],
-
             data: [
-                { id: null, name: null, priority: null, left: null, uuid: null }
+                {id: null, name: null, priority: null, left: null, uuid: null}
+            ],
+            columns: [
+                {title: 'Название товара', field: 'name', editComponent},
+                {title: 'Приоритет', field: 'priority', editComponent},
+                {title: 'Остаток на складе', field: 'left', editComponent},
             ],
         }
     }
@@ -50,7 +65,7 @@ class Goods extends Component {
     makeResponse = (body, data) => {
         let obj = {
             goods: {},
-            count:0
+            count: 0
         };
         obj.count = data.left;
         obj.goods = body;
@@ -81,7 +96,20 @@ class Goods extends Component {
         this.setState({data: body, isLoading: false});
     }
 
+    validateUniqueName = (prop) => {
+        let found = false;
+        this.state.data.filter((row) => {
+            if (row.name === prop.name) {
+                found = true;
+            }
+        });
+        console.log(this.state.data);
+        console.log(prop);
+        return !found;
+    };
+
     render() {
+
 
         if (this.state.isLoading) {
             return <p>Загрузка...</p>;
@@ -89,6 +117,28 @@ class Goods extends Component {
 
         return (
             <div>
+                <Collapse in={this.state.open}>
+                    <Alert
+                        severity="warning"
+                        action={
+                            <IconButton
+                                aria-label="close"
+                                color="inherit"
+                                size="small"
+
+                                onClick={() => {
+                                    this.setState({open:false});
+                                }}
+                            >
+
+                                <CloseIcon fontSize="inherit" />
+                            </IconButton>
+                        }
+                    >
+                        <AlertTitle>Предупреждение</AlertTitle>
+                        Товар с таким именем уже существует, выберите другое
+                    </Alert>
+                </Collapse>
                 <MaterialTable
                     localization={{
                         pagination: {
@@ -151,15 +201,21 @@ class Goods extends Component {
                                         const data = [...prevState.data];
                                         data.push(newData);
 
-                                        return { ...prevState, data };
+                                        return {...prevState, data};
                                     });
-                                    // this.componentDidMount();
+                                    this.componentDidMount();
                                 }, 600);
 
                             }),
                         onRowUpdate: (newData, oldData) =>
-                            new Promise((resolve) => {
+
+                            new Promise((resolve, reject) => {
                                 setTimeout(async () => {
+                                    if (!this.validateUniqueName(newData)) {
+                                        this.setState({open:true})
+                                        reject();
+                                        return;
+                                    }
                                     resolve();
                                     if (oldData) {
 
@@ -188,9 +244,10 @@ class Goods extends Component {
                                         this.setState((prevState) => {
                                             const data = [...prevState.data];
                                             data[data.indexOf(oldData)] = newData;
-                                            return { ...prevState, data };
+                                            return {...prevState, data};
                                         });
                                     }
+                                    // this.componentDidMount();
                                 }, 600);
                             }),
                         onRowDelete: (oldData) =>
@@ -206,7 +263,7 @@ class Goods extends Component {
                                         const data = [...prevState.data];
                                         data.splice(data.indexOf(oldData), 1)
 
-                                        return { ...prevState, data };
+                                        return {...prevState, data};
                                     });
 
                                 }, 600);
