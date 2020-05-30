@@ -79,8 +79,6 @@ class Goods extends Component {
     };
 
     render() {
-        console.log("render");
-
         if (this.state.isLoading) {
             return <p>Загрузка...</p>;
         }

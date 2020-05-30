@@ -77,19 +77,24 @@ public class WarehouseController {
             return addToWarehouse(warehouseOne);
         }
         warehouseService.findInOneById(warehouseOne.getId()).ifPresent((res) -> {
-//            warehouse.setCount(warehouseOne.getCount());
-//            warehouse.setGoods(res.getGoods());
-//            warehouse.setId(res.getId());
             warehouseService.addGoodToOne(warehouseOne);
         });
         warehouseService.findInTwoById(warehouseOne.getId()).ifPresent((res) -> {
-//            warehouse.setCount(warehouseOne.getCount());
-//            warehouse.setGoods(res.getGoods());
-//            warehouse.setId(res.getId());
             warehouseService.addGoodToTwo(new WarehouseTwo(warehouseOne.getId(), warehouseOne.getGoods(),
                     warehouseOne.getCount()));
         });
 
         return new ResponseEntity<>(warehouseOne, HttpStatus.OK);
+    }
+
+    @PutMapping("/update/{id}")
+    public void deleteFromWarehouse(@PathVariable UUID id, @RequestParam Integer count) {
+        warehouseService.findInOneById(id).ifPresent((wh) -> {
+            updateWarehouse(new WarehouseOne(wh.getId(), wh.getGoods(), wh.getCount() - count));
+        });
+
+        warehouseService.findInTwoById(id).ifPresent((wh) -> {
+            updateWarehouse(new WarehouseOne(wh.getId(), wh.getGoods(), wh.getCount() - count));
+        });
     }
 }
