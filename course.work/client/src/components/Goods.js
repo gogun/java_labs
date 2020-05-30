@@ -1,47 +1,12 @@
-import React, {Component, useState} from 'react';
+import React, {Component} from 'react';
 import MaterialTable from 'material-table';
-import TextField from "@material-ui/core/TextField";
 import Alert from '@material-ui/lab/Alert';
 import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from '@material-ui/icons/Close';
 import Collapse from "@material-ui/core/Collapse";
 import AlertTitle from "@material-ui/lab/AlertTitle";
+import EditComponent from "./EditComponent";
 
-const validate = {
-
-    name: s => {
-        if (s.length > 0 ){
-            return ""
-        } else {
-            return "Введите название товара"
-        }
-    },
-    priority: s => ((!isNaN(parseInt(s)) && parseInt(s) > 0) ? "" : "Некорректный приоритет"),
-    left: s => ((!isNaN(parseInt(s)) && parseInt(s) > 0) ? "" : "Некорректное число")
-};
-
-const EditComponent = ({ onChange, value, ...rest }) => {
-    const [currentValue, setValue] = useState(value);
-    const [error, setError] = useState("");
-    const change = e => {
-        const newValue = e.target.value;
-        setValue(newValue);
-        const errorMessage = validate[rest.columnDef.field](newValue);
-        setError(errorMessage);
-        if (!errorMessage) {
-            onChange(newValue);
-        }
-    };
-    return (
-        <TextField
-            {...rest}
-            error={error}
-            helperText={error}
-            value={currentValue}
-            onChange={change}
-        />
-    );
-};
 
 const editComponent = EditComponent;
 
@@ -49,7 +14,8 @@ class Goods extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            open: false,
+            showNameAlert: false,
+            showAddAlert : false,
             isLoading: true,
             data: [
                 {id: null, name: null, priority: null, left: null, uuid: null}
@@ -99,17 +65,21 @@ class Goods extends Component {
     validateUniqueName = (prop) => {
         let found = false;
         this.state.data.filter((row) => {
-            if (row.name === prop.name) {
+            if (row.uuid !== prop.uuid && row.name === prop.name) {
+                console.log(row);
+                console.log(prop);
                 found = true;
             }
         });
-        console.log(this.state.data);
-        console.log(prop);
         return !found;
     };
 
-    render() {
+    validateAdd = (prop) => {
+        return prop.name !== undefined && prop.priority !== undefined && prop.left !== undefined;
+    };
 
+    render() {
+        console.log("render");
 
         if (this.state.isLoading) {
             return <p>Загрузка...</p>;
@@ -117,7 +87,7 @@ class Goods extends Component {
 
         return (
             <div>
-                <Collapse in={this.state.open}>
+                <Collapse in={this.state.showNameAlert}>
                     <Alert
                         severity="warning"
                         action={
@@ -127,16 +97,38 @@ class Goods extends Component {
                                 size="small"
 
                                 onClick={() => {
-                                    this.setState({open:false});
+                                    this.setState({showNameAlert: false});
                                 }}
                             >
 
-                                <CloseIcon fontSize="inherit" />
+                                <CloseIcon fontSize="inherit"/>
                             </IconButton>
                         }
                     >
                         <AlertTitle>Предупреждение</AlertTitle>
                         Товар с таким именем уже существует, выберите другое
+                    </Alert>
+                </Collapse>
+                <Collapse in={this.state.showAddAlert}>
+                    <Alert
+                        severity="warning"
+                        action={
+                            <IconButton
+                                aria-label="close"
+                                color="inherit"
+                                size="small"
+
+                                onClick={() => {
+                                    this.setState({showAddAlert: false});
+                                }}
+                            >
+
+                                <CloseIcon fontSize="inherit"/>
+                            </IconButton>
+                        }
+                    >
+                        <AlertTitle>Предупреждение</AlertTitle>
+                        Введите корректные данные
                     </Alert>
                 </Collapse>
                 <MaterialTable
@@ -168,13 +160,18 @@ class Goods extends Component {
                             editTooltip: 'Редактировать'
                         }
                     }}
-                    title="Таблица Товаров"
+                    title="Таблица товаров"
                     columns={this.state.columns}
                     data={this.state.data}
                     editable={{
                         onRowAdd: (newData) =>
-                            new Promise((resolve) => {
+                            new Promise((resolve, reject) => {
                                 setTimeout(async () => {
+                                    if (!this.validateAdd(newData)) {
+                                        this.setState({showAddAlert: true});
+                                        reject();
+                                        return;
+                                    }
                                     resolve();
 
                                     const response_good = await fetch('/api/goods/add', {
@@ -212,7 +209,7 @@ class Goods extends Component {
                             new Promise((resolve, reject) => {
                                 setTimeout(async () => {
                                     if (!this.validateUniqueName(newData)) {
-                                        this.setState({open:true})
+                                        this.setState({showNameAlert: true});
                                         reject();
                                         return;
                                     }
