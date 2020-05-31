@@ -43,7 +43,11 @@ class Goods extends Component {
     };
 
     async componentDidMount() {
-        const response_goods = await fetch('/api/goods/all');
+        const response_goods = await fetch('/api/goods/all', {
+            headers : {
+                "Authorization": "Bearer " + this.props.token
+            }
+        });
         const body = await response_goods.json();
 
         const response_amounts = await fetch('/api/warehouse/left', {
@@ -51,7 +55,8 @@ class Goods extends Component {
             dataType: 'json',
             body: JSON.stringify(body),
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + this.props.token
             }
         });
         const list = await response_amounts.json();
@@ -177,7 +182,8 @@ class Goods extends Component {
                                         dataType: 'json',
                                         body: JSON.stringify(newData),
                                         headers: {
-                                            "Content-Type": "application/json"
+                                            "Content-Type": "application/json",
+                                            "Authorization": "Bearer " + this.props.token
                                         }
                                     });
                                     let body = await response_good.json();
@@ -188,7 +194,8 @@ class Goods extends Component {
                                             dataType: 'json',
                                             body: JSON.stringify(this.makeResponse(body, newData)),
                                             headers: {
-                                                "Content-Type": "application/json"
+                                                "Content-Type": "application/json",
+                                                "Authorization": "Bearer " + this.props.token
                                             }
                                         });
                                     }
@@ -219,7 +226,8 @@ class Goods extends Component {
                                             dataType: 'json',
                                             body: JSON.stringify(newData),
                                             headers: {
-                                                "Content-Type": "application/json"
+                                                "Content-Type": "application/json",
+                                                "Authorization": "Bearer " + this.props.token
                                             }
                                         });
                                         let body = await response_good.json();
@@ -230,7 +238,8 @@ class Goods extends Component {
                                                 dataType: 'json',
                                                 body: JSON.stringify(this.makeResponse(body, newData)),
                                                 headers: {
-                                                    "Content-Type": "application/json"
+                                                    "Content-Type": "application/json",
+                                                    "Authorization": "Bearer " + this.props.token
                                                 }
                                             });
                                         }
@@ -251,7 +260,10 @@ class Goods extends Component {
                                     resolve();
 
                                     await fetch('api/goods/delete/' + oldData.id, {
-                                        method: "DELETE"
+                                        method: "DELETE",
+                                        headers: {
+                                            "Authorization": "Bearer " + this.props.token
+                                        }
                                     });
 
                                     this.setState((prevState) => {

@@ -9,8 +9,18 @@ import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
+import Alert from "@material-ui/lab/Alert";
+import IconButton from "@material-ui/core/IconButton";
+import CloseIcon from "@material-ui/icons/Close";
+import AlertTitle from "@material-ui/lab/AlertTitle";
+import Collapse from "@material-ui/core/Collapse";
+import Cookies from 'universal-cookie';
+import Redirect from "react-router-dom/es/Redirect";
+
+const _ = require('lodash');
 
 const useStyles = makeStyles((theme) => ({
+
     paper: {
         marginTop: theme.spacing(8),
         display: 'flex',
@@ -31,21 +41,29 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function SignIn() {
+    // if (!_.isEmpty(this.cookies.getAll())) {
+    //     return <Redirect to='/main'/>
+    // }
+    const cookies = new Cookies();
+
     const classes = useStyles();
 
     const [username, setUsername] = useState("");
     const [pass, setPass] = useState("");
     const [isAuth, setAuth] = useState(false);
+    const [isAlert, setAlert] = useState(false);
+
+    let isRemember = false;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         const body = {
-            "username" : username,
-            "password" : pass
+            "username": username,
+            "password": pass
         };
 
-        const request = await fetch("/api/auth/signin",{
+        const request = await fetch("/api/auth/signin", {
             method: "POST",
             body: JSON.stringify(body),
             headers: {
@@ -53,17 +71,28 @@ export default function SignIn() {
             }
         });
 
-        const response = await request.json();
+        if (!request.ok) {
+            setAlert(true)
+        } else {
+            const response = await request.json();
 
+            cookies.set('role', response.role, {path: '/'});
+            cookies.set('token', response.token, {path: '/'});
+            cookies.set('remember', false, {path: '/'});
 
+            if (isRemember) {
+                cookies.set('remember', true, {path: '/'});
+            }
 
-        console.log(response.user.username);
-        console.log(response.user.roles[0])
-
-        console.log(response.token)
+            // console.log(cookies.get('remember'))
+            setAuth(true)
+        }
 
     };
 
+    if (isAuth) {
+        return <Redirect to='/main'/>
+    }
 
     const handleChangeUsername = (e) => {
         setUsername(e.target.value)
@@ -73,58 +102,88 @@ export default function SignIn() {
         setPass(e.target.value)
     };
 
+    const handleRemember = (e) => {
+        isRemember = !!e.target.checked;
+    };
+
     return (
-        <Container component="main" maxWidth="xs">
-            <CssBaseline/>
-            <div className={classes.paper}>
-                <Avatar className={classes.avatar}>
-                    <LockOutlinedIcon/>
-                </Avatar>
-                <Typography component="h1" variant="h5">
-                    Вход
-                </Typography>
-                <form className={classes.form} noValidate onSubmit={handleSubmit}>
-                    <TextField
-                        variant="outlined"
-                        margin="normal"
-                        required
-                        fullWidth
-                        id="email"
-                        value={username}
-                        onChange={handleChangeUsername}
-                        label="Логин"
-                        name="email"
-                        autoComplete="email"
-                        autoFocus
-                    />
-                    <TextField
-                        variant="outlined"
-                        margin="normal"
-                        required
-                        fullWidth
-                        value={pass}
-                        name="password"
-                        label="Пароль"
-                        onChange={handleChangePass}
-                        type="password"
-                        id="password"
-                        autoComplete="current-password"
-                    />
-                    <FormControlLabel
-                        control={<Checkbox value="remember" color="primary"/>}
-                        label="Запомнить меня"
-                    />
-                    <Button
-                        type="submit"
-                        fullWidth
-                        variant="contained"
-                        color="primary"
-                        className={classes.submit}
-                    >
-                        Войти
-                    </Button>
-                </form>
-            </div>
-        </Container>
+
+        <div>
+            <Collapse in={isAlert}>
+                <Alert
+                    severity="warning"
+                    action={
+                        <IconButton
+                            aria-label="close"
+                            color="inherit"
+                            size="small"
+
+                            onClick={() => {
+                                setAlert(false);
+                            }}
+                        >
+
+                            <CloseIcon fontSize="inherit"/>
+                        </IconButton>
+                    }
+                >
+                    <AlertTitle>Предупреждение</AlertTitle>
+                    Неправильный логин или пароль
+                </Alert>
+            </Collapse>
+
+            <Container component="main" maxWidth="xs">
+                <CssBaseline/>
+                <div className={classes.paper}>
+                    <Avatar className={classes.avatar}>
+                        <LockOutlinedIcon/>
+                    </Avatar>
+                    <Typography component="h1" variant="h5">
+                        Вход
+                    </Typography>
+                    <form className={classes.form} noValidate onSubmit={handleSubmit}>
+                        <TextField
+                            variant="outlined"
+                            margin="normal"
+                            required
+                            fullWidth
+                            id="email"
+                            value={username}
+                            onChange={handleChangeUsername}
+                            label="Логин"
+                            name="email"
+                            autoComplete="email"
+                            autoFocus
+                        />
+                        <TextField
+                            variant="outlined"
+                            margin="normal"
+                            required
+                            fullWidth
+                            value={pass}
+                            name="password"
+                            label="Пароль"
+                            onChange={handleChangePass}
+                            type="password"
+                            id="password"
+                            autoComplete="current-password"
+                        />
+                        <FormControlLabel
+                            control={<Checkbox onChange={handleRemember} value="remember" color="primary"/>}
+                            label="Запомнить меня"
+                        />
+                        <Button
+                            type="submit"
+                            fullWidth
+                            variant="contained"
+                            color="primary"
+                            className={classes.submit}
+                        >
+                            Войти
+                        </Button>
+                    </form>
+                </div>
+            </Container>
+        </div>
     );
 }

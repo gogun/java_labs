@@ -1,42 +1,60 @@
 import React, {Component} from 'react';
 import Goods from "./Goods";
 import Sales from "./Sales";
-import LoginTab from "./Login";
 import Paper from "@material-ui/core/Paper";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
+import Cookies from "universal-cookie";
+import Button from "@material-ui/core/Button";
+import Redirect from "react-router-dom/es/Redirect";
 
+
+const _ = require('lodash');
 
 class Chooser extends Component {
     constructor(props) {
         super(props);
+        this.cookies = new Cookies();
         this.state = {
-            value : 0
+            value: 0
         }
     }
 
     render() {
+        if (_.isEmpty(this.cookies.getAll())) {
+            return <Redirect to='/'/>
+        }
+
+
         const switchViews = (view) => {
             switch (view) {
                 case 0 :
-                    return <Goods/>;
+                    return <Goods token={this.cookies.get('token')}/>;
                 case 1:
-                    return <Sales/>;
+                    return <Sales token={this.cookies.get('token')}/>;
                 default:
                     return null
             }
         };
 
         const handleChange = (event, newValue) => {
-            this.setState({value:newValue})
+            this.setState({value: newValue})
+        };
+
+        const handleSignOut = () => {
+            this.cookies.remove('token');
+            this.cookies.remove('role');
+            this.cookies.remove('remember');
+            this.cookies.remove('ROLE_ADMIN');
+
         };
 
         const {value} = this.state;
 
         return (
-            // switchViews(this.props.view)
             <div>
                 <Paper square>
+
                     <Tabs
                         value={value}
                         indicatorColor="primary"
@@ -44,9 +62,13 @@ class Chooser extends Component {
                         onChange={handleChange}
                         aria-label="disabled tabs example"
                     >
-                        <Tab label="Товары" />
-                        <Tab label="Заявки" />
+                        <Tab label="Товары"/>
+                        <Tab label="Заявки"/>
+                        <Button onClick={handleSignOut}>
+                            Выйти
+                        </Button>
                     </Tabs>
+
                 </Paper>
                 {switchViews(value)}
 

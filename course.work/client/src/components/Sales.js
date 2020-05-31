@@ -113,10 +113,18 @@ class Sales extends Component {
 
     async componentDidMount() {
 
-        const response_goods = await fetch('/api/goods/all');
+        const response_goods = await fetch('/api/goods/all', {
+            headers:{
+                "Authorization": "Bearer " + this.props.token
+            }
+        });
         const body_goods = await response_goods.json();
 
-        const response_sales = await fetch('/api/sales/all');
+        const response_sales = await fetch('/api/sales/all', {
+            headers:{
+                "Authorization": "Bearer " + this.props.token
+            }
+        });
         const sales = await response_sales.json();
 
         const response_amounts = await fetch('/api/warehouse/left', {
@@ -124,7 +132,8 @@ class Sales extends Component {
             dataType: 'json',
             body: JSON.stringify(body_goods),
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + this.props.token
             }
         });
         const left = await response_amounts.json();
@@ -236,7 +245,8 @@ class Sales extends Component {
                                         dataType: 'json',
                                         body: JSON.stringify(body),
                                         headers: {
-                                            "Content-Type": "application/json"
+                                            "Content-Type": "application/json",
+                                            "Authorization": "Bearer " + this.props.token
                                         }
                                     });
 
@@ -274,15 +284,20 @@ class Sales extends Component {
 
                                     resolve();
 
-                                    await fetch('/api/sales/delete/' +
-                                        row.id, {
+                                    await fetch('/api/sales/delete/' + row.id, {
                                         method: "DELETE",
+                                        headers: {
+                                            "Authorization": "Bearer " + this.props.token
+                                        }
                                     });
 
                                     await fetch('/api/warehouse/update/' +
                                         dataLeft.uuid + '/?count='
                                         + row.count, {
                                         method: "PUT",
+                                        headers: {
+                                            "Authorization": "Bearer " + this.props.token
+                                        }
                                     });
 
                                     this.setState((prevState) => {
