@@ -41,16 +41,15 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function SignIn() {
-    // if (!_.isEmpty(this.cookies.getAll())) {
-    //     return <Redirect to='/main'/>
-    // }
+
     const cookies = new Cookies();
 
     const classes = useStyles();
 
     const [username, setUsername] = useState("");
     const [pass, setPass] = useState("");
-    const [isAuth, setAuth] = useState(false);
+    const [isAdmin, setAdmin] = useState(false);
+    const [isUser, setUser] = useState(false);
     const [isAlert, setAlert] = useState(false);
 
     let isRemember = false;
@@ -79,18 +78,26 @@ export default function SignIn() {
             cookies.set('role', response.role, {path: '/'});
             cookies.set('token', response.token, {path: '/'});
             cookies.set('remember', false, {path: '/'});
-
+            cookies.set('user', body, {path: '/'});
+            console.log(response)
             if (isRemember) {
                 cookies.set('remember', true, {path: '/'});
             }
+            if (response.role === "ROLE_ADMIN") {
+                setAdmin(true)
+            } else {
+                setUser(true)
+            }
 
-            // console.log(cookies.get('remember'))
-            setAuth(true)
         }
 
     };
 
-    if (isAuth) {
+    if (isAdmin) {
+        return <Redirect to='/admin'/>
+    }
+
+    if (isUser) {
         return <Redirect to='/main'/>
     }
 
@@ -184,6 +191,7 @@ export default function SignIn() {
                     </form>
                 </div>
             </Container>
+            {(!_.isEmpty(cookies.getAll())) ? <Redirect to='/main'/> : null}
         </div>
     );
 }

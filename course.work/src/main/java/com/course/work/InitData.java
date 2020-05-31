@@ -24,6 +24,10 @@ public class InitData implements CommandLineRunner {
             userRepository.save(new Users("admin", passwordEncoder.encode("admin"),
                     Collections.singletonList("ROLE_ADMIN")));
         }
+        if (userRepository.findUsersByUsername("user").isEmpty()) {
+            userRepository.save(new Users("user", passwordEncoder.encode("user"),
+                    Collections.singletonList("ROLE_USER")));
+        }
 
     }
 }

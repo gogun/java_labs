@@ -11,6 +11,11 @@ import CloseIcon from "@material-ui/icons/Close";
 import AlertTitle from "@material-ui/lab/AlertTitle";
 import Collapse from "@material-ui/core/Collapse";
 import {Done} from "@material-ui/icons";
+import Cookies from "universal-cookie";
+import Redirect from "react-router-dom/es/Redirect";
+
+
+const _ = require('lodash');
 
 const validate = {
     count: (s, g) => {
@@ -27,10 +32,12 @@ const validate = {
     },
 };
 
-class Sales extends Component {
+class SalesUser extends Component {
 
     constructor(props) {
         super(props);
+        this.cookie = new Cookies();
+        this.token = this.props.token;
         this.state = {
             isLoading: true,
             data: [{id: null, goods: null, count: null, timestamp: null, amount: null}],
@@ -113,16 +120,47 @@ class Sales extends Component {
 
     async componentDidMount() {
 
-        const response_goods = await fetch('/api/goods/all', {
+        let response_goods = await fetch('/api/goods/all', {
             headers:{
-                "Authorization": "Bearer " + this.props.token
+                "Authorization": "Bearer " + this.token
             }
         });
+
+        if (!response_goods.ok) {
+            if (this.cookie.get('remember') === "true") {
+
+                let body = this.cookie.get('user');
+
+                const request = await fetch("/api/auth/signin", {
+                    method: "POST",
+                    body: JSON.stringify(body),
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                });
+                const response = await request.json();
+                this.cookie.set('token', response.token, {path: '/'});
+                this.token = response.token;
+                response_goods = await fetch('/api/goods/all', {
+                    headers : {
+                        "Authorization": "Bearer " + this.token
+                    }
+                });
+            } else {
+                this.cookie.remove('token');
+                this.cookie.remove('role');
+                this.cookie.remove('remember');
+                this.cookie.remove('user');
+                this.setState({isLoading:false})
+                return;
+            }
+        }
+
         const body_goods = await response_goods.json();
 
         const response_sales = await fetch('/api/sales/all', {
             headers:{
-                "Authorization": "Bearer " + this.props.token
+                "Authorization": "Bearer " + this.token
             }
         });
         const sales = await response_sales.json();
@@ -133,7 +171,7 @@ class Sales extends Component {
             body: JSON.stringify(body_goods),
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": "Bearer " + this.props.token
+                "Authorization": "Bearer " + this.token
             }
         });
         const left = await response_amounts.json();
@@ -162,6 +200,9 @@ class Sales extends Component {
 
         if (this.state.isLoading) {
             return <p>Загрузка...</p>;
+        }
+        if (_.isEmpty(this.cookie.getAll())) {
+            return <Redirect to='/'/>
         }
 
         return (
@@ -222,6 +263,9 @@ class Sales extends Component {
                         Delete: props => <Done {...props} />
                     }}
                     columns={this.state.columns}
+                    options={{
+                        actionsColumnIndex: -1
+                    }}
                     data={this.state.data}
                     editable={{
                         onRowAdd: (newData) =>
@@ -246,7 +290,7 @@ class Sales extends Component {
                                         body: JSON.stringify(body),
                                         headers: {
                                             "Content-Type": "application/json",
-                                            "Authorization": "Bearer " + this.props.token
+                                            "Authorization": "Bearer " + this.token
                                         }
                                     });
 
@@ -269,47 +313,6 @@ class Sales extends Component {
                                 }, 600);
 
                             }),
-                        onRowDelete: (oldData) =>
-                            new Promise((resolve, reject) => {
-                                setTimeout(async () => {
-                                    const row = this.state.data[this.state.data.indexOf(oldData)];
-                                    const dataLeft = this.state.goods.find((good) => {
-                                        return good.id === row.goods.id
-                                    });
-                                    if (!this.validateAccepting(row, dataLeft)) {
-                                        this.setState({showAcceptingAlert: true});
-                                        reject();
-                                        return;
-                                    }
-
-                                    resolve();
-
-                                    await fetch('/api/sales/delete/' + row.id, {
-                                        method: "DELETE",
-                                        headers: {
-                                            "Authorization": "Bearer " + this.props.token
-                                        }
-                                    });
-
-                                    await fetch('/api/warehouse/update/' +
-                                        dataLeft.uuid + '/?count='
-                                        + row.count, {
-                                        method: "PUT",
-                                        headers: {
-                                            "Authorization": "Bearer " + this.props.token
-                                        }
-                                    });
-
-                                    this.setState((prevState) => {
-                                        const data = [...prevState.data];
-                                        data.splice(data.indexOf(oldData), 1)
-
-                                        return {...prevState, data};
-                                    });
-                                    this.componentDidMount();
-                                }, 600);
-
-                            }),
                     }}
                 />
             </div>
@@ -317,4 +320,4 @@ class Sales extends Component {
     }
 }
 
-export default Sales;
+export default SalesUser;

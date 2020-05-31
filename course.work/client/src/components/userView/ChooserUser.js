@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
-import Goods from "./Goods";
-import Sales from "./Sales";
+import GoodsUser from "./GoodsUser";
+import SalesUser from "./SalesUser";
 import Paper from "@material-ui/core/Paper";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
@@ -11,27 +11,35 @@ import Redirect from "react-router-dom/es/Redirect";
 
 const _ = require('lodash');
 
-class Chooser extends Component {
+class ChooserUser extends Component {
     constructor(props) {
         super(props);
         this.cookies = new Cookies();
+
         this.state = {
+            isRedirect: false,
             value: 0
         }
     }
 
     render() {
-        if (_.isEmpty(this.cookies.getAll())) {
+        if (_.isEmpty(this.cookies.getAll())
+            // || this.cookies.get('role') !== "ROLE_ADMIN"
+        ) {
             return <Redirect to='/'/>
         }
+
+        // if (this.cookies.get('role') !== "ROLE_ADMIN") {
+        //     return <Redirect to='/main'/>
+        // }
 
 
         const switchViews = (view) => {
             switch (view) {
                 case 0 :
-                    return <Goods token={this.cookies.get('token')}/>;
+                    return <GoodsUser token={this.cookies.get('token')}/>;
                 case 1:
-                    return <Sales token={this.cookies.get('token')}/>;
+                    return <SalesUser token={this.cookies.get('token')}/>;
                 default:
                     return null
             }
@@ -42,11 +50,12 @@ class Chooser extends Component {
         };
 
         const handleSignOut = () => {
+
             this.cookies.remove('token');
             this.cookies.remove('role');
             this.cookies.remove('remember');
-            this.cookies.remove('ROLE_ADMIN');
-
+            this.cookies.remove('user');
+            this.setState({isRedirect : true})
         };
 
         const {value} = this.state;
@@ -77,4 +86,4 @@ class Chooser extends Component {
     }
 }
 
-export default Chooser;
+export default ChooserUser;

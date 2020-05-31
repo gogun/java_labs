@@ -6,16 +6,23 @@ import CloseIcon from '@material-ui/icons/Close';
 import Collapse from "@material-ui/core/Collapse";
 import AlertTitle from "@material-ui/lab/AlertTitle";
 import EditComponent from "./EditComponent";
+import Cookies from "universal-cookie";
+import Redirect from "react-router-dom/es/Redirect";
 
+
+const _ = require('lodash');
 
 const editComponent = EditComponent;
 
 class Goods extends Component {
     constructor(props) {
         super(props);
+        this.cookie = new Cookies();
+        this.token = this.props.token;
         this.state = {
             showNameAlert: false,
             showAddAlert : false,
+            isRedirect: false,
             isLoading: true,
             data: [
                 {id: null, name: null, priority: null, left: null, uuid: null}
@@ -43,11 +50,42 @@ class Goods extends Component {
     };
 
     async componentDidMount() {
-        const response_goods = await fetch('/api/goods/all', {
+        let response_goods = await fetch('/api/goods/all', {
             headers : {
-                "Authorization": "Bearer " + this.props.token
+                "Authorization": "Bearer " + this.token
             }
         });
+
+        if (!response_goods.ok) {
+            if (this.cookie.get('remember') === "true") {
+
+                let body = this.cookie.get('user');
+
+                const request = await fetch("/api/auth/signin", {
+                    method: "POST",
+                    body: JSON.stringify(body),
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                });
+                const response = await request.json();
+                this.cookie.set('token', response.token, {path: '/'});
+                this.token = response.token;
+                response_goods = await fetch('/api/goods/all', {
+                    headers : {
+                        "Authorization": "Bearer " + this.token
+                    }
+                });
+            } else {
+                this.cookie.remove('token');
+                this.cookie.remove('role');
+                this.cookie.remove('remember');
+                this.cookie.remove('user');
+                this.setState({isLoading:false})
+                return;
+            }
+        }
+
         const body = await response_goods.json();
 
         const response_amounts = await fetch('/api/warehouse/left', {
@@ -56,7 +94,7 @@ class Goods extends Component {
             body: JSON.stringify(body),
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": "Bearer " + this.props.token
+                "Authorization": "Bearer " + this.token
             }
         });
         const list = await response_amounts.json();
@@ -86,6 +124,9 @@ class Goods extends Component {
     render() {
         if (this.state.isLoading) {
             return <p>Загрузка...</p>;
+        }
+        if (_.isEmpty(this.cookie.getAll())) {
+            return <Redirect to='/'/>
         }
 
         return (
@@ -183,9 +224,16 @@ class Goods extends Component {
                                         body: JSON.stringify(newData),
                                         headers: {
                                             "Content-Type": "application/json",
-                                            "Authorization": "Bearer " + this.props.token
+                                            "Authorization": "Bearer " + this.token
                                         }
                                     });
+
+                                    if (!response_good.ok) {
+                                        if (this.cookie.get('remember') === "true") {
+
+                                        }
+                                    }
+
                                     let body = await response_good.json();
 
                                     if (newData.left != null) {
@@ -195,7 +243,7 @@ class Goods extends Component {
                                             body: JSON.stringify(this.makeResponse(body, newData)),
                                             headers: {
                                                 "Content-Type": "application/json",
-                                                "Authorization": "Bearer " + this.props.token
+                                                "Authorization": "Bearer " + this.token
                                             }
                                         });
                                     }
@@ -227,7 +275,7 @@ class Goods extends Component {
                                             body: JSON.stringify(newData),
                                             headers: {
                                                 "Content-Type": "application/json",
-                                                "Authorization": "Bearer " + this.props.token
+                                                "Authorization": "Bearer " + this.token
                                             }
                                         });
                                         let body = await response_good.json();
@@ -239,7 +287,7 @@ class Goods extends Component {
                                                 body: JSON.stringify(this.makeResponse(body, newData)),
                                                 headers: {
                                                     "Content-Type": "application/json",
-                                                    "Authorization": "Bearer " + this.props.token
+                                                    "Authorization": "Bearer " + this.token
                                                 }
                                             });
                                         }
@@ -262,7 +310,7 @@ class Goods extends Component {
                                     await fetch('api/goods/delete/' + oldData.id, {
                                         method: "DELETE",
                                         headers: {
-                                            "Authorization": "Bearer " + this.props.token
+                                            "Authorization": "Bearer " + this.token
                                         }
                                     });
 
