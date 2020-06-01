@@ -30,6 +30,15 @@ public class WarehouseController {
     }
 
 
+    @GetMapping("/all")
+    public ResponseEntity<List<WarehouseOne>> getWarehouseOneList() {
+        List<WarehouseOne> warehouseOneList = warehouseService.listWarehouseOne();
+        for (WarehouseTwo elem : warehouseService.listWarehouseTwo()) {
+            warehouseOneList.add(new WarehouseOne(elem.getId(), elem.getGoods(), elem.getCount()));
+        }
+        return new ResponseEntity<>(warehouseOneList, HttpStatus.OK);
+    }
+
     @PostMapping("/left")
     public ResponseEntity<List<Pair>> getGoodsLeft(@RequestBody List<Goods> goods) {
         List<Pair> result = new LinkedList<>();
@@ -47,15 +56,6 @@ public class WarehouseController {
             }
         }
         return new ResponseEntity<>(result, HttpStatus.OK);
-    }
-
-    @GetMapping("/all")
-    public ResponseEntity<List<WarehouseOne>> getWarehouseOneList() {
-        List<WarehouseOne> warehouseOneList = warehouseService.listWarehouseOne();
-        for (WarehouseTwo elem : warehouseService.listWarehouseTwo()) {
-            warehouseOneList.add(new WarehouseOne(elem.getId(), elem.getGoods(), elem.getCount()));
-        }
-        return new ResponseEntity<>(warehouseOneList, HttpStatus.OK);
     }
 
     @PostMapping("/add")

@@ -191,7 +191,10 @@ export default function SignIn() {
                     </form>
                 </div>
             </Container>
-            {(!_.isEmpty(cookies.getAll())) ? <Redirect to='/main'/> : null}
+            {(!_.isEmpty(cookies.getAll()) && cookies.get('role') === "ROLE_USER")
+                ? <Redirect to='/main'/> : null}
+            {(!_.isEmpty(cookies.getAll()) && cookies.get('role') === "ROLE_ADMIN")
+                ? <Redirect to='/admin'/> : null}
         </div>
     );
 }
